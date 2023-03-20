@@ -19,7 +19,8 @@ const upload = multer({
 /* 환경설정 */
 app.use(express.json()); //json파일을 처리할 수 있게 하는 메서드
 app.use(cors());
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static("uploads"));//업로드 생성 매핑
+
 /* 경로설정 */
 app.get("/products", function (req, res) {
   models.Product.findAll({
@@ -68,17 +69,19 @@ app.post("/products", function (req, res) {
   // body에 post방식으로 요청들어온걸 전부 저장.
   const body = req.body;
   // 저장한것을 상수 body에 각각 아래 키로 구조분해할당.
-  const { name, description, price, seller } = body;
+  const { name, description, price, seller, imageUrl } = body;
   /* 앞단 방어코드 */
   /*   if (!name || !description || !price || !seller) {
     res.send("모든필드를 입력하세요.");
   } */
   //레코드생성
+
   models.Product.create({
     name,
     description,
     price,
     seller,
+    imageUrl
   })
     .then((result) => {
       console.log("상품생성결과:", result);
