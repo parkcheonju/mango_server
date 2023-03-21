@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
 const models = require("./models");
 
 /*=================================  multer ======================================= */
@@ -19,7 +19,6 @@ const upload = multer({
 }); /* multer */
 
 /*================================== 환경설정  ================================= */
-
 
 app.use(express.json()); //json파일을 처리할 수 있게 하는 메서드
 app.use(cors());
