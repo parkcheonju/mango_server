@@ -1,10 +1,11 @@
-// import React, { Component } from 'react' 밑에가 같은 뜻임
 const express = require("express");
 const cors = require("cors");
-const app = express(); /* 이게 주인공 app을불러 서버에 필요한 걸 가져옴*/
+const app = express();
 const port = 8080;
 const models = require("./models");
-/* 0317 multer*/
+
+/*=================================  multer ======================================= */
+
 const multer = require("multer");
 const upload = multer({
   storage: multer.diskStorage({
@@ -16,19 +17,42 @@ const upload = multer({
     },
   }),
 }); /* multer */
-/* 환경설정 */
+
+/*================================== 환경설정  ================================= */
+
+
 app.use(express.json()); //json파일을 처리할 수 있게 하는 메서드
 app.use(cors());
-app.use("/uploads", express.static("uploads"));//업로드 생성 매핑
+app.use("/uploads", express.static("uploads")); //업로드 생성 매핑
 
-/* 경로설정 */
+/*================================ get.banners ======================================== */
+
+app.get("/banners", (req, res) => {
+  models.Banner.findAll({
+    limit: 2,
+  })
+    .then((result) => {
+      res.send({
+        banners: result,
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send("에러가 발생했습니다");
+    });
+});
+
+/*================================ get.products ===================================== */
+
 app.get("/products", function (req, res) {
   models.Product.findAll({
+    //findAll은 어떤걸 내보낼지 스스로 설정할 수 있음
     /* 데이터제한 데이터 많을 시응답속도 개선에 도움이됨 */
     // limit: 1,
     /* 정렬기능 ASC,DESC*/
+    //최신 등록일 순으로 설정
     order: [["createdAt", "DESC"]],
-    attributes: ["id", "name", "price", "seller", "imageUrl", "createdAt"],
+    attributes: ["id", "name", "price", "seller", "imageUrl", "createdAt", "soldout"],
   })
     .then((result) => {
       console.log("product 조회결과:", result);
@@ -39,6 +63,9 @@ app.get("/products", function (req, res) {
       res.send("에러발생");
     });
 });
+
+/*============================== get./products/:id" ========================================== */
+
 app.get("/products/:id", (req, res) => {
   const params = req.params;
   const { id } = params;
@@ -56,6 +83,9 @@ app.get("/products/:id", (req, res) => {
       res.send("상품조회시 에러가 발생 하였습니다.");
     });
 });
+
+/*================================ post.image ======================================== */
+
 /* 0317 multer*/
 app.post("/image", upload.single("image"), (req, res) => {
   const file = req.file;
@@ -64,24 +94,22 @@ app.post("/image", upload.single("image"), (req, res) => {
     imageUrl: file.path,
   });
 });
-//상품생성데이터를 데이터베이스 추가. database.sqlite3 = 저장하드역할
+
+/*================================= post.products ===================================== */
+
 app.post("/products", function (req, res) {
-  // body에 post방식으로 요청들어온걸 전부 저장.
   const body = req.body;
-  // 저장한것을 상수 body에 각각 아래 키로 구조분해할당.
   const { name, description, price, seller, imageUrl } = body;
   /* 앞단 방어코드 */
   /*   if (!name || !description || !price || !seller) {
     res.send("모든필드를 입력하세요.");
   } */
-  //레코드생성
-
   models.Product.create({
     name,
     description,
     price,
     seller,
-    imageUrl
+    imageUrl,
   })
     .then((result) => {
       console.log("상품생성결과:", result);
@@ -92,21 +120,25 @@ app.post("/products", function (req, res) {
       // res.send("상품업로드에 문제가 생겼습니다.");
     });
 });
-// method: post, /login 로그인이 완료되었습니다.
+
+/*================================== post.login ====================================== */
+
 app.post("/login", function (req, res) {
   res.send("로그인이 완료 되었습니다.");
 });
-/* app실행 */
+
+/*================================ listen ======================================== */
+
 app.listen(port, () => {
-  console.log("서버가 돌아가고 있습니다.");
+  console.log("기명섭의 정신이 돌아가고 있습니다.");
   models.sequelize
     .sync()
     .then(function () {
-      console.log("연결성공");
+      console.log("연결성공!");
     })
     .catch(function () {
       console.error("error");
       console.log("error");
-      process.exit(); //sever 종료
+      process.exit();
     });
 });
